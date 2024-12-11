@@ -1,10 +1,11 @@
+import cookieParser from "cookie-parser";
+import cors from "cors";
 import "dotenv/config";
 import express from "express";
-import cors from "cors";
-import cookieParser from "cookie-parser";
 import connectToDatabase from "./config/db";
 import { APP_ORIGIN, NODE_ENV, PORT } from "./constants/env";
 import errorHandler from "./middleware/error-handler";
+import authRoutes from "./routes/auth.routes";
 
 const app = express();
 
@@ -25,6 +26,8 @@ app.get("/", async (_, res) => {
     status: "healthy",
   });
 });
+
+app.use("/auth", authRoutes);
 
 app.use(errorHandler);
 
