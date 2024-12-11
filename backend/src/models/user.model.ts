@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import * as mongoose from "mongoose";
 import { hashValue, compareValue } from "../utils/bcrypt";
 
 export interface UserDocument extends mongoose.Document {
@@ -8,6 +8,10 @@ export interface UserDocument extends mongoose.Document {
   createdAt: Date;
   updatedAt: Date;
   comparePassword(val: string): Promise<boolean>;
+  omitPassword(): Pick<
+    UserDocument,
+    "_id" | "email" | "verified" | "createdAt" | "updatedAt" | "__v"
+  >;
 }
 
 const userSchema = new mongoose.Schema<UserDocument>(
