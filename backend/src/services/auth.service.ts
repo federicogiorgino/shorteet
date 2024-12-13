@@ -1,5 +1,10 @@
 import { JWT_REFRESH_SECRET, JWT_SECRET } from "../constants/env";
-import { CONFLICT, UNAUTHORIZED } from "../constants/http";
+import {
+  CONFLICT,
+  INTERNAL_SERVER_ERROR,
+  NOT_FOUND,
+  UNAUTHORIZED,
+} from "../constants/http";
 import SessionModel from "../models/session.model";
 import UserModel from "../models/user.model";
 import VerificationCodeModel from "../models/verification-code.model";
@@ -141,4 +146,28 @@ export const refreshUserAccessToken = async (refreshToken: string) => {
   });
 
   return { accessToken, newRefreshToken };
+};
+
+export const verifyEmail = async (verificationCode: string) => {
+  const isValid = await VerificationCodeModel.findOne({
+    _id: verificationCode,
+    type: VerificationCodeType.EmailVerification,
+    expiresAt: { $gt: Date.now() },
+  });
+
+  appAssert(isValid, NOT_FOUND, "Invalid/expired verification code");
+
+  const user = await UserModel.findByIdAndUpdate(
+    isValid.userId,
+    { verified: true },
+    { new: true }
+  );
+
+  appAssert(user, INTERNAL_SERVER_ERROR, "Failed to verify email");
+
+  await isValid.deleteOne();
+
+  return {
+    user: user.omitPassword(),
+  };
 };
