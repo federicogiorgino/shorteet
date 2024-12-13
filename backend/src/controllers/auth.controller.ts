@@ -2,6 +2,7 @@ import { CREATED, OK, UNAUTHORIZED } from "../constants/http";
 import SessionModel from "../models/session.model";
 import VerificationCodeModel from "../models/verification-code.model";
 import {
+  emailSchema,
   loginSchema,
   registerSchema,
   verificationCodeSchema,
@@ -10,6 +11,7 @@ import {
   createAccount,
   loginUser,
   refreshUserAccessToken,
+  sendResetPasswordEmail,
   verifyEmail,
 } from "../services/auth.service";
 import appAssert from "../utils/app-assert";
@@ -87,4 +89,12 @@ export const verifyEmailController = catchErrors(async (req, res) => {
   await verifyEmail(verificationCode);
 
   return res.status(OK).json({ message: "Email verified" });
+});
+
+export const forgotPasswordController = catchErrors(async (req, res) => {
+  const email = emailSchema.parse(req.body.email);
+
+  await sendResetPasswordEmail(email);
+
+  return res.status(OK).json({ message: "Password reset email sent" });
 });
