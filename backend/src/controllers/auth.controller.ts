@@ -1,12 +1,22 @@
-import { CREATED, OK } from "../constants/http";
+import { CREATED, OK, UNAUTHORIZED } from "../constants/http";
 import SessionModel from "../models/session.model";
 import { loginSchema, registerSchema } from "../schemas/auth.schemas";
-import { createAccount, loginUser } from "../services/auth.service";
+import {
+  createAccount,
+  loginUser,
+  refreshUserAccessToken,
+} from "../services/auth.service";
+import appAssert from "../utils/app-assert";
 import catchErrors from "../utils/catch-errors";
-import { clearAuthCookies, setAuthCookies } from "../utils/cookies";
+import {
+  clearAuthCookies,
+  getAccessTokenCookieOptions,
+  getRefreshTokenCookieOptions,
+  setAuthCookies,
+} from "../utils/cookies";
 import { verifyToken } from "../utils/jwt";
 
-export const registerHandler = catchErrors(async (req, res) => {
+export const registerController = catchErrors(async (req, res) => {
   const request = registerSchema.parse({
     ...req.body,
     userAgent: req.headers["user-agent"],
@@ -19,7 +29,7 @@ export const registerHandler = catchErrors(async (req, res) => {
     .json(user);
 });
 
-export const loginHandler = catchErrors(async (req, res) => {
+export const loginController = catchErrors(async (req, res) => {
   const request = loginSchema.parse({
     ...req.body,
     userAgent: req.headers["user-agent"],
@@ -32,7 +42,7 @@ export const loginHandler = catchErrors(async (req, res) => {
     .json({ message: "Login successful" });
 });
 
-export const logoutHandler = catchErrors(async (req, res) => {
+export const logoutController = catchErrors(async (req, res) => {
   const accessToken = req.cookies.accessToken as string | undefined;
   const { payload } = verifyToken(accessToken || "");
 
@@ -45,4 +55,22 @@ export const logoutHandler = catchErrors(async (req, res) => {
   return clearAuthCookies(res)
     .status(OK)
     .json({ message: "Logout successful" });
+});
+
+export const refreshController = catchErrors(async (req, res) => {
+  const refreshToken = req.cookies.refreshToken as string | undefined;
+  appAssert(refreshToken, UNAUTHORIZED, "Invalid refresh token");
+
+  const { accessToken, newRefreshToken } = await refreshUserAccessToken(
+    refreshToken
+  );
+
+  if (newRefreshToken) {
+    res.cookie("refreshToken", newRefreshToken, getRefreshTokenCookieOptions());
+  }
+
+  return res
+    .status(OK)
+    .cookie("accessToken", accessToken, getAccessTokenCookieOptions())
+    .json({ message: "Access token refreshed" });
 });

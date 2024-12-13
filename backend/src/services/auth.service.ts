@@ -5,9 +5,9 @@ import UserModel from "../models/user.model";
 import VerificationCodeModel from "../models/verification-code.model";
 import VerificationCodeType from "../types/verification-code.type";
 import appAssert from "../utils/app-assert";
-import { oneYearFromNow } from "../utils/dates";
+import { ONE_DAY_MS, oneYearFromNow, thirtyDaysFromNow } from "../utils/dates";
 import jwt, { VerifyOptions, SignOptions } from "jsonwebtoken";
-import { refreshTokenSignOptions, signToken } from "../utils/jwt";
+import { refreshTokenSignOptions, signToken, verifyToken } from "../utils/jwt";
 
 export type CreateAccountParams = {
   email: string;
@@ -107,4 +107,38 @@ export const loginUser = async ({
     accessToken,
     refreshToken,
   };
+};
+
+export const refreshUserAccessToken = async (refreshToken: string) => {
+  const { payload, error } = verifyToken(refreshToken, {
+    secret: refreshTokenSignOptions.secret,
+  });
+  appAssert(payload, UNAUTHORIZED, "Invalid refresh token");
+
+  const session = await SessionModel.findById(payload.sessionId);
+
+  appAssert(
+    session && session.expiresAt.getTime() > Date.now(),
+    UNAUTHORIZED,
+    "Session expired"
+  );
+
+  // session refresh of expires in the future 24 hrs
+  const needsRefresh = session.expiresAt.getTime() < Date.now() + ONE_DAY_MS;
+
+  if (needsRefresh) {
+    session.expiresAt = thirtyDaysFromNow();
+    await session.save();
+  }
+
+  const newRefreshToken = needsRefresh
+    ? signToken({ sessionId: session._id }, refreshTokenSignOptions)
+    : undefined;
+
+  const accessToken = signToken({
+    userId: session.userId,
+    sessionId: session._id,
+  });
+
+  return { accessToken, newRefreshToken };
 };
