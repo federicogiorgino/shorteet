@@ -1,4 +1,4 @@
-import { JWT_REFRESH_SECRET, JWT_SECRET } from "../constants/env";
+import { APP_ORIGIN, JWT_REFRESH_SECRET, JWT_SECRET } from "../constants/env";
 import {
   CONFLICT,
   INTERNAL_SERVER_ERROR,
@@ -13,6 +13,7 @@ import appAssert from "../utils/app-assert";
 import { ONE_DAY_MS, oneYearFromNow, thirtyDaysFromNow } from "../utils/dates";
 import jwt, { VerifyOptions, SignOptions } from "jsonwebtoken";
 import { refreshTokenSignOptions, signToken, verifyToken } from "../utils/jwt";
+import { getVerifyEmailTemplate, sendMail } from "../utils/email";
 
 export type CreateAccountParams = {
   email: string;
@@ -46,6 +47,15 @@ export const createAccount = async (data: CreateAccountParams) => {
   });
 
   // future email verification
+
+  const url = `${APP_ORIGIN}/email/verify/${verificationCode._id}`;
+
+  const { error } = await sendMail({
+    to: user.email,
+    ...getVerifyEmailTemplate(url),
+  });
+
+  appAssert(error, INTERNAL_SERVER_ERROR, "Failed to send verification email");
 
   // creates a session
   const session = await SessionModel.create({
