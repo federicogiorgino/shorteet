@@ -5,12 +5,14 @@ import {
   emailSchema,
   loginSchema,
   registerSchema,
+  resetPasswordSchema,
   verificationCodeSchema,
 } from "../schemas/auth.schemas";
 import {
   createAccount,
   loginUser,
   refreshUserAccessToken,
+  resetPassword,
   sendResetPasswordEmail,
   verifyEmail,
 } from "../services/auth.service";
@@ -97,4 +99,14 @@ export const forgotPasswordController = catchErrors(async (req, res) => {
   await sendResetPasswordEmail(email);
 
   return res.status(OK).json({ message: "Password reset email sent" });
+});
+
+export const resetPasswordController = catchErrors(async (req, res) => {
+  const request = resetPasswordSchema.parse(req.body);
+
+  await resetPassword(request);
+
+  return clearAuthCookies(res)
+    .status(OK)
+    .json({ message: "Password was reset successfully" });
 });

@@ -5,6 +5,7 @@ import {
   logoutController,
   refreshController,
   registerController,
+  resetPasswordController,
   verifyEmailController,
 } from "../controllers/auth.controller";
 
@@ -18,5 +19,6 @@ authRoutes.get("/logout", logoutController);
 authRoutes.get("/refresh", refreshController);
 authRoutes.get("/email/verify/:code", verifyEmailController);
 authRoutes.post("/password/forgot", forgotPasswordController);
+authRoutes.post("/password/reset", resetPasswordController);
 
 export default authRoutes;
