@@ -8,6 +8,7 @@ import errorHandler from "./middleware/error-handler";
 import authRoutes from "./routes/auth.routes";
 import isAuth from "./middleware/is-auth";
 import userRoutes from "./routes/user.routes";
+import sessionRoutes from "./routes/session.routes";
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.get("/", async (_, res) => {
 
 app.use("/auth", authRoutes);
 app.use("/user", isAuth, userRoutes);
+app.use("/sessions", isAuth, sessionRoutes);
 
 app.use(errorHandler);
 
