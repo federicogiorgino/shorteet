@@ -2,6 +2,7 @@ import { z } from "zod";
 import { NOT_FOUND, OK } from "../constants/http";
 import SessionModel from "../models/session.model";
 import catchErrors from "../utils/catch-errors";
+import appAssert from "../utils/app-assert";
 
 export const getSessionController = catchErrors(async (req, res) => {
   const sessions = await SessionModel.find(
@@ -28,4 +29,14 @@ export const getSessionController = catchErrors(async (req, res) => {
       }),
     }))
   );
+});
+
+export const deleteSessionController = catchErrors(async (req, res) => {
+  const sessionId = z.string().parse(req.params.id);
+  const deleted = await SessionModel.findOneAndDelete({
+    _id: sessionId,
+    userId: req.userId,
+  });
+  appAssert(deleted, NOT_FOUND, "Session not found");
+  return res.status(OK).json({ message: "Session removed" });
 });
