@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -17,27 +16,25 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { loginSchema } from "@/schemas/auth";
-import { LoginValues } from "@/types/auth";
+import { registerSchema } from "@/schemas/auth";
+import { RegisterValues } from "@/types/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { login } from "../lib/api";
 import { QrCode } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { Link, useNavigate } from "react-router-dom";
+import { register } from "../lib/api";
 import { LoadingButton } from "./ui/loading-button";
 
-export function LoginForm({
+export function RegisterForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
-  const location = useLocation();
-  const redirectUrl = location.state?.redirectUrl || "/";
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const form = useForm<LoginValues>({
-    resolver: zodResolver(loginSchema),
+  const form = useForm<RegisterValues>({
+    resolver: zodResolver(registerSchema),
     defaultValues: {
       email: "",
       password: "",
@@ -45,19 +42,19 @@ export function LoginForm({
   });
 
   const mutation = useMutation({
-    mutationFn: login,
+    mutationFn: register,
     onSuccess: async () => {
       toast({
-        description: "Login Successful!",
+        description: "Registration successfull!",
       });
-      navigate(redirectUrl, {
+      navigate("/", {
         replace: true,
       });
     },
     onError: (_: Error) => {
       toast({
         variant: "destructive",
-        description: "There was an error logging in",
+        description: "There was an error creating an account",
       });
     },
   });
@@ -71,8 +68,9 @@ export function LoginForm({
       <Card>
         <CardHeader className="text-center flex flex-col gap-2 items-center">
           <QrCode className="text-primary w-20 h-20 text-center" />
-          <CardTitle className="text-3xl font-bold">Login</CardTitle>
-          <CardDescription>Access your existing account </CardDescription>
+
+          <CardTitle className="text-3xl font-bold">Register</CardTitle>
+          <CardDescription>Create an account</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -108,30 +106,39 @@ export function LoginForm({
                 )}
               />
 
-              <div className="-mt-3 text-right text-sm">
-                <Link
-                  to="/password/forgot"
-                  className="font-medium text-primary hover:underline"
-                >
-                  Forgot password?
-                </Link>
-              </div>
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm Password</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="Enter your password"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <LoadingButton
                 type="submit"
                 className="w-full"
                 loading={form.formState.isSubmitting}
               >
-                Login
+                Register
               </LoadingButton>
 
               <div className="text-center text-sm">
-                Don&apos;t have an account?{" "}
+                Already have an account?{" "}
                 <Link
-                  to="/register"
+                  to="/login"
                   className="font-medium text-primary hover:underline"
                 >
-                  Register
+                  Login
                 </Link>
               </div>
             </form>

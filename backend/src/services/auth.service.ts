@@ -71,7 +71,7 @@ export const createAccount = async (data: CreateAccountParams) => {
     ...getVerifyEmailTemplate(url),
   });
 
-  appAssert(error, INTERNAL_SERVER_ERROR, "Failed to send verification email");
+  // appAssert(error, INTERNAL_SERVER_ERROR, "Failed to send verification email");
 
   // creates a session
   const session = await SessionModel.create({
