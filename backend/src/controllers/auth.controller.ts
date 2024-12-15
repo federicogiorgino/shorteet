@@ -96,10 +96,10 @@ export const verifyEmailController = catchErrors(async (req, res) => {
 export const forgotPasswordController = catchErrors(async (req, res) => {
   const email = emailSchema.parse(req.body.email);
 
-  const foundEmail = await VerificationCodeModel.findOne({ email }).select(
-    "email"
-  );
-  appAssert(foundEmail, NOT_FOUND, "Email not found");
+  // const foundEmail = await VerificationCodeModel.findOne({ email }).select(
+  //   "email"
+  // );
+  // appAssert(foundEmail, NOT_FOUND, "Email not found");
 
   await sendResetPasswordEmail(email);
 

@@ -199,33 +199,36 @@ export const verifyEmail = async (verificationCode: string) => {
 };
 
 export const sendResetPasswordEmail = async (email: string) => {
-  try {
-    const user = await UserModel.findOne({ email });
-    appAssert(user, NOT_FOUND, "User not found");
+  const user = await UserModel.findOne({ email });
+  appAssert(user, NOT_FOUND, "User not found");
 
-    // this makes sure the user can only create one password reset code in the last 5 minutes
-    // by checking how many times the user has created a password reset code in the last 5 minutes
+  // Catch any errors that were thrown and log them (but always return a success)
+  // This will prevent leaking sensitive data back to the client (e.g. user not found, email not sent).
+
+  try {
+    // check for max password reset requests (2 emails in 5min)
+    const fiveMinAgo = fiveMinutesAgo();
     const count = await VerificationCodeModel.countDocuments({
       userId: user._id,
       type: VerificationCodeType.PasswordReset,
-      createdAt: { $gt: fiveMinutesAgo() },
+      createdAt: { $gt: fiveMinAgo },
     });
-
     appAssert(
       count <= 1,
       TOO_MANY_REQUESTS,
       "Too many requests, please try again later"
     );
 
+    const expiresAt = oneHourFromNow();
     const verificationCode = await VerificationCodeModel.create({
       userId: user._id,
       type: VerificationCodeType.PasswordReset,
-      expiresAt: oneHourFromNow(),
+      expiresAt,
     });
 
     const url = `${APP_ORIGIN}/password/reset?code=${
       verificationCode._id
-    }&exp=${oneHourFromNow().getTime()}`;
+    }&exp=${expiresAt.getTime()}`;
 
     const { data, error } = await sendMail({
       to: email,

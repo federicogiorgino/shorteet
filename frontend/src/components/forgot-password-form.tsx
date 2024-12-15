@@ -64,7 +64,7 @@ export function ForgotPasswordForm({
         <CardHeader className="text-center flex flex-col gap-2 items-center">
           <QrCode className="text-primary w-20 h-20 text-center" />
           <CardTitle className="text-3xl font-bold">
-            Reset your password
+            Forgot your password
           </CardTitle>
           <CardDescription>Enter your email address</CardDescription>
         </CardHeader>
@@ -88,7 +88,7 @@ export function ForgotPasswordForm({
               <LoadingButton
                 type="submit"
                 className="w-full"
-                loading={mutation.isPending}
+                loading={form.formState.isSubmitting}
               >
                 Submit
               </LoadingButton>
