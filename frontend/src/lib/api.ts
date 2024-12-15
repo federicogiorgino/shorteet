@@ -7,3 +7,6 @@ export const register = async (data: RegisterValues) =>
 
 export const verifyEmail = async (verificationCode: string | undefined) =>
   API.get(`/auth/email/verify/${verificationCode}`);
+
+export const sendPasswordResetEmail = async (email: string) =>
+  API.post("/auth/password/forgot", { email });

@@ -1,4 +1,4 @@
-import { CREATED, OK, UNAUTHORIZED } from "../constants/http";
+import { CREATED, NOT_FOUND, OK, UNAUTHORIZED } from "../constants/http";
 import SessionModel from "../models/session.model";
 import VerificationCodeModel from "../models/verification-code.model";
 import {
@@ -95,6 +95,11 @@ export const verifyEmailController = catchErrors(async (req, res) => {
 
 export const forgotPasswordController = catchErrors(async (req, res) => {
   const email = emailSchema.parse(req.body.email);
+
+  const foundEmail = await VerificationCodeModel.findOne({ email }).select(
+    "email"
+  );
+  appAssert(foundEmail, NOT_FOUND, "Email not found");
 
   await sendResetPasswordEmail(email);
 
